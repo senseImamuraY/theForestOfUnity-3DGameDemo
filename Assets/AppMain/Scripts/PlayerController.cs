@@ -5,16 +5,22 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
   [SerializeField] GameObject attackHit = null;
+  [SerializeField] ColliderCallReceiver footColliderCall = null;
   [SerializeField] float jumpPower = 20f;
   Animator animator = null;
   Rigidbody rigid = null;
   bool isAttack = false;
+  bool isGround = false;
   // Start is called before the first frame update
   void Start()
   {
     animator = GetComponent<Animator>();
     rigid = GetComponent<Rigidbody>();
     attackHit.SetActive(false);
+
+    // FootSphereのイベント登録
+    footColliderCall.TriggerStayEvent.AddListener(OnFootTriggerStay);
+    footColliderCall.TriggerExitEvent.AddListener(OnFootTriggerExit);
   }
 
   // Update is called once per frame
@@ -41,7 +47,37 @@ public class PlayerController : MonoBehaviour
   // </summary>
   public void OnJumpButtonClicked()
   {
-    rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+    if (isGround == true)
+    {
+      rigid.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+
+    }
+  }
+
+  /// <summary>
+  ///FootSphereトリガーステイコール
+  /// </summary>
+  /// <param name="col">侵入したコライダー</param>
+  void OnFootTriggerStay(Collider col)
+  {
+    if (col.gameObject.tag == "Ground")
+    {
+      if (isGround == false) isGround = true;
+      if (animator.GetBool("isGround") == false) animator.SetBool("isGround", true);
+    }
+  }
+
+  /// <summary>
+  /// FootSphereトリガーイグジットコール
+  /// </summary>
+  /// <param name="col">侵入したコライダー</param>
+  void OnFootTriggerExit(Collider col)
+  {
+    if (col.gameObject.tag == "Ground")
+    {
+      isGround = false;
+      animator.SetBool("isGround", false);
+    }
   }
 
   /// < summary > 
